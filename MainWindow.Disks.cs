@@ -164,6 +164,9 @@ public partial class MainWindow
             data.Disks.AddRange(disks.Select(d => new ReportDisk(d.Title, d.Meta, d.VerdictText, d.Reasons, d.Metrics)));
             var power = await Task.Run(() => BatteryInfo.Read(sensorsSnapshot));
             data.Power.AddRange(power.Select(d => new ReportDisk(d.Title, d.Meta, d.VerdictText, d.Reasons, d.Metrics)));
+            var evs = await Task.Run(() => EventDiagnostics.Read(DateTime.Now.AddDays(-7), _blackBox));
+            if (evs.Error == null)
+                data.Events.AddRange(EventCards(evs).Select(d => new ReportDisk(d.Title, d.Meta, d.VerdictText, d.Reasons, d.Metrics)));
             if (_lastNet != null)
                 data.Network.AddRange(_lastNet.Select(d => new ReportDisk(d.Title, d.Meta, d.VerdictText, d.Reasons, d.Metrics)));
 

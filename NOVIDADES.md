@@ -1,5 +1,14 @@
 ## Novidades da v0.16
 
+**Nova página · RESET EXPLODE › Eventos e falhas**
+- Para quando o PC reinicia, desliga ou trava "do nada": lê o Visualizador de Eventos e mostra cada desligamento numa linha do tempo,
+  separando tela azul (com o código explicado), erro fatal de hardware (WHEA), travamento desligado no botão e desligamento seco
+  (fonte, energia ou superaquecimento), com os erros que apareceram nos 10 minutos antes.
+- Veredito com a causa mais provável (instabilidade de CPU/RAM, placa de vídeo, driver, disco, fonte, temperatura) e o que fazer.
+- Eventos agrupados por categoria com explicação em português, arquivos de despejo de tela azul e botão **COPIAR RELATÓRIO**.
+- **Caixa-preta**: com o app aberto (pode ficar minimizado), grava temperatura, carga e consumo de CPU e GPU a cada 5 s e mostra os
+  últimos valores antes de cada queda.
+
 **Nova página · RESET FERRAMENTAS › Inicialização**
 - Lista os programas que abrem junto com o Windows: chaves Run do registro (usuário, todos os usuários, 32 e 64 bits)
   e pastas Inicializar, com descrição, fabricante e aviso quando o arquivo do programa não existe mais.

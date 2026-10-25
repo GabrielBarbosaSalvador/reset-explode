@@ -72,6 +72,9 @@ public partial class MainWindow : Window
     private float _gpuMaxTemp;
     private readonly List<double> _gpuTempHistory = new();
 
+    // Eventos e falhas
+    private readonly BlackBox _blackBox = new();
+
     private Brush Fg => (Brush)FindResource("Fg");
     private Brush Ink => (Brush)FindResource("Ink");
     private Brush Muted => (Brush)FindResource("Muted");
@@ -93,6 +96,7 @@ public partial class MainWindow : Window
         StatusText.Text = "Detectando o hardware…";
 
         InitBench();
+        _blackBox.SetEnabled(_settings.BlackBoxEnabled);
         SnapshotUsb();
         RefreshDrives();
         TitlePage.Text = "Visão geral";
@@ -113,6 +117,7 @@ public partial class MainWindow : Window
             UpdateGpuLive();
             UpdateCpuSensorWarning();
             CollectDashSample();
+            _blackBox.Tick(_monitor.CpuTemperature, _monitor.CpuLoad, _monitor.CpuPower, MainGpuTemp(), MainGpuLoad(), MainGpuPower());
             UpdateBottleneck();
             if (PageBench.IsVisible) UpdateBenchLive();
             if (PageOptimize.IsVisible) UpdateRamStatus();
@@ -136,6 +141,7 @@ public partial class MainWindow : Window
             UnregisterHotKey(new System.Windows.Interop.WindowInteropHelper(this).Handle, HotkeyId);
             ShutdownInteg();
             _launchCts?.Cancel();
+            _blackBox.Stop();
             _monitor.Dispose();
         };
     }
@@ -280,12 +286,13 @@ public partial class MainWindow : Window
             case "PageMakerPorts": ScanUsb(); break;
             case "PageMakerDrv": InitMakerDrivers(); break;
             case "PageOptimize": InitOptimize(); break;
+            case "PageEvents": InitEvents(); break;
         }
     }
 
     private void ShowPage(string name)
     {
-        foreach (var p in new FrameworkElement[] { PageDash, PageSystem, PageSensors, PageGpu, PageGames, PageBottleneck, PageOverlay, PageBench, PageOptimize, PageOc, PageInteg, PageLauncher, PageDriver, PageStartup, PageApps, PageMakerPorts, PageMakerDrv, PageDisks, PageEnergy, PageNet, PageStress })
+        foreach (var p in new FrameworkElement[] { PageDash, PageSystem, PageSensors, PageGpu, PageGames, PageBottleneck, PageOverlay, PageBench, PageOptimize, PageOc, PageInteg, PageLauncher, PageDriver, PageStartup, PageApps, PageMakerPorts, PageMakerDrv, PageDisks, PageEnergy, PageNet, PageEvents, PageStress })
             p.Visibility = p.Name == name ? Visibility.Visible : Visibility.Collapsed;
     }
 

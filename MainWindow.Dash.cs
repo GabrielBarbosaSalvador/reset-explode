@@ -352,6 +352,14 @@ public partial class MainWindow
                       errs.Error != null ? "Não foi possível ler o registro do Windows."
                                          : $"{errs.Whea} WHEA · {errs.GpuResets} reinícios do driver em 7 dias."));
 
+        try
+        {
+            int crashes = EventDiagnostics.UnexpectedSince(DateTime.Now.AddDays(-7));
+            list.Add(Item(crashes == 0, "Sem desligamentos inesperados", "O PC não caiu nem reiniciou sozinho em 7 dias.",
+                          $"{crashes} quedas/reinícios inesperados em 7 dias: veja Eventos e falhas."));
+        }
+        catch { }
+
         var gm = _tweaks.FirstOrDefault(t => t.Id == "gamemode");
         var dvr = _tweaks.FirstOrDefault(t => t.Id == "gamedvr");
         try { gm?.Refresh(); dvr?.Refresh(); } catch { }

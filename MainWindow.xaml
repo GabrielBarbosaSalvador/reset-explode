@@ -221,6 +221,12 @@
                                     <TextBlock Text="Rede" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </RadioButton>
+                            <RadioButton x:Name="NavEvents" Style="{StaticResource NavItem}" Tag="PageEvents" Checked="Nav_Checked">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="&#xE7BA;" FontFamily="{StaticResource Icons}" FontSize="14" Width="28" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Eventos e falhas" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </RadioButton>
                             </StackPanel>
                             <ToggleButton x:Name="GrpGames" Style="{StaticResource NavGroup}" Content="RESET JOGOS"/>
                             <StackPanel x:Name="GrpGamesItems" Margin="10,0,0,4" Visibility="{Binding IsChecked, ElementName=GrpGames, Converter={StaticResource BoolVis}}">
@@ -775,6 +781,262 @@
                             O teste envia pacotes de ping ao roteador e aos DNS públicos 1.1.1.1 e 8.8.8.8 e baixa/envia dados de teste do servidor público
                             speed.cloudflare.com (cerca de 100 MB no total). Feche downloads, streaming e jogos antes para um resultado fiel.
                         </TextBlock>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- ===== EVENTOS E FALHAS (por que o PC reiniciou, desligou ou travou) ===== -->
+                <ScrollViewer x:Name="PageEvents" Visibility="Collapsed" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="36,30,36,30">
+                        <Grid Margin="0,0,0,14">
+                            <StackPanel Margin="0,0,330,0">
+                                <TextBlock Text="Eventos e falhas" Style="{StaticResource H1}"/>
+                                <TextBlock Text="Por que o PC reiniciou, desligou ou travou · lê o Visualizador de Eventos do Windows" Style="{StaticResource Sub}" TextWrapping="Wrap"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
+                                <Button x:Name="BtnEvCopy" Style="{StaticResource OutlineButton}" Content="COPIAR RELATÓRIO" Padding="16,9" Margin="0,0,10,0"
+                                        IsEnabled="False" Click="BtnEvCopy_Click"/>
+                                <Button x:Name="BtnEvScan" Style="{StaticResource PrimaryButton}" Content="ATUALIZAR" Padding="20,9" Click="BtnEvScan_Click"/>
+                            </StackPanel>
+                        </Grid>
+                        <WrapPanel Margin="0,0,0,6">
+                            <RadioButton Style="{StaticResource Chip}" GroupName="EvRange" Content="24 HORAS" Tag="24" Checked="EvRange_Checked"/>
+                            <RadioButton Style="{StaticResource Chip}" GroupName="EvRange" Content="7 DIAS" Tag="168" IsChecked="True" Checked="EvRange_Checked"/>
+                            <RadioButton Style="{StaticResource Chip}" GroupName="EvRange" Content="30 DIAS" Tag="720" Checked="EvRange_Checked"/>
+                        </WrapPanel>
+                        <TextBlock x:Name="EvStatus" Text="Abra a página para ler o registro." Foreground="{DynamicResource Muted}" TextWrapping="Wrap" Margin="0,0,0,16"/>
+
+                        <!-- Veredito em destaque -->
+                        <Border x:Name="EvVerdictCard" Background="{DynamicResource Card}" BorderBrush="{DynamicResource LineStrong}"
+                                BorderThickness="1" CornerRadius="10" Padding="24,22" Margin="0,0,0,24">
+                            <StackPanel>
+                                <Border x:Name="EvVerdictBadgeBox" Background="{DynamicResource Fg}" CornerRadius="4" Padding="9,3" HorizontalAlignment="Left">
+                                    <TextBlock x:Name="EvVerdictBadge" Text="" Foreground="{DynamicResource Ink}" FontSize="11" FontWeight="Bold"/>
+                                </Border>
+                                <TextBlock x:Name="EvVerdictTitle" Text="" FontSize="23" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,10,0,0"/>
+                                <TextBlock x:Name="EvVerdictSummary" Text="" Foreground="{DynamicResource Muted}" FontSize="14" TextWrapping="Wrap" Margin="0,8,0,0"/>
+
+                                <ItemsControl x:Name="EvStats" Margin="0,18,0,0">
+                                    <ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Rows="1"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border BorderBrush="{DynamicResource Line}" BorderThickness="1,0,0,0" Padding="16,2,10,2">
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding Value}" FontSize="24" FontWeight="SemiBold" FontFamily="{StaticResource Mono}"/>
+                                                    <TextBlock Text="{Binding Key}" Foreground="{DynamicResource Muted}" FontSize="11" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <StackPanel x:Name="EvVerdictDetail">
+                                    <Border Height="1" Background="{DynamicResource Line}" Margin="0,20,0,18"/>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="32"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel x:Name="EvWhyCol" Grid.Column="0">
+                                            <TextBlock Text="POR QUÊ" Style="{StaticResource Label}" Margin="0,0,0,10"/>
+                                            <ItemsControl x:Name="EvWhy">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Grid Margin="0,0,0,8">
+                                                            <Grid.ColumnDefinitions><ColumnDefinition Width="16"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                                            <TextBlock Text="•" Foreground="{DynamicResource Muted}"/>
+                                                            <TextBlock Grid.Column="1" Text="{Binding}" TextWrapping="Wrap" FontSize="13" LineHeight="18"/>
+                                                        </Grid>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </StackPanel>
+                                        <StackPanel x:Name="EvActionsCol" Grid.Column="2">
+                                            <TextBlock Text="O QUE FAZER" Style="{StaticResource Label}" Margin="0,0,0,10"/>
+                                            <ItemsControl x:Name="EvActions">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Grid Margin="0,0,0,11">
+                                                            <Grid.ColumnDefinitions><ColumnDefinition Width="28"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                                            <Border Width="21" Height="21" CornerRadius="11" BorderBrush="{DynamicResource LineStrong}" BorderThickness="1" VerticalAlignment="Top">
+                                                                <TextBlock Text="{Binding Num}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                            </Border>
+                                                            <TextBlock Grid.Column="1" Text="{Binding Text}" TextWrapping="Wrap" FontSize="13" LineHeight="18" Margin="2,1,0,0"/>
+                                                        </Grid>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                                <TextBlock x:Name="EvVerdictNotes" Foreground="{DynamicResource Muted}" FontSize="12.5" TextWrapping="Wrap" Margin="0,16,0,0" Visibility="Collapsed"/>
+                            </StackPanel>
+                        </Border>
+
+                        <TextBlock Text="DESLIGAMENTOS E REINÍCIOS" Style="{StaticResource Label}" Margin="0,6,0,12"/>
+                        <TextBlock x:Name="EvTimelineEmpty" Foreground="{DynamicResource Muted}" TextWrapping="Wrap" Margin="0,0,0,14" Visibility="Collapsed"/>
+                        <ItemsControl x:Name="EvTimeline">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="{DynamicResource Card}" BorderBrush="{DynamicResource Line}" BorderThickness="1" CornerRadius="8" Margin="0,0,0,10">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="4"/>
+                                                <ColumnDefinition Width="108"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Border Grid.Column="0" CornerRadius="8,0,0,8">
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Setter Property="Background" Value="{DynamicResource LineStrong}"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Alert}" Value="True">
+                                                                <Setter Property="Background" Value="{DynamicResource Fg}"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
+                                            </Border>
+                                            <StackPanel Grid.Column="1" Margin="16,14,8,14">
+                                                <TextBlock Text="{Binding Day}" FontWeight="SemiBold" FontSize="14"/>
+                                                <TextBlock Text="{Binding Clock}" FontFamily="{StaticResource Mono}" Foreground="{DynamicResource Muted}" FontSize="13" Margin="0,2,0,0"/>
+                                                <TextBlock Text="{Binding LastSignal}" Foreground="{DynamicResource Faint}" FontSize="10.5" TextWrapping="Wrap" Margin="0,5,0,0"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="2" Margin="6,14,16,14">
+                                                <Grid>
+                                                    <TextBlock Text="{Binding Kind}" FontWeight="SemiBold" FontSize="14.5" TextWrapping="Wrap" Margin="0,0,104,0"/>
+                                                    <Border HorizontalAlignment="Right" VerticalAlignment="Top" CornerRadius="4" Padding="8,3">
+                                                        <Border.Style>
+                                                            <Style TargetType="Border">
+                                                                <Setter Property="Background" Value="Transparent"/>
+                                                                <Setter Property="BorderBrush" Value="{DynamicResource LineStrong}"/>
+                                                                <Setter Property="BorderThickness" Value="1"/>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding Alert}" Value="True">
+                                                                        <Setter Property="Background" Value="{DynamicResource Fg}"/>
+                                                                        <Setter Property="BorderBrush" Value="{DynamicResource Fg}"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Border.Style>
+                                                        <TextBlock Text="{Binding Badge}" FontSize="10.5" FontWeight="Bold">
+                                                            <TextBlock.Style>
+                                                                <Style TargetType="TextBlock">
+                                                                    <Setter Property="Foreground" Value="{DynamicResource Muted}"/>
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding Alert}" Value="True">
+                                                                            <Setter Property="Foreground" Value="{DynamicResource Ink}"/>
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </TextBlock.Style>
+                                                        </TextBlock>
+                                                    </Border>
+                                                </Grid>
+                                                <TextBlock Text="{Binding Detail}" Foreground="{DynamicResource Muted}" FontSize="12.5" TextWrapping="Wrap" LineHeight="18" Margin="0,8,0,0"/>
+                                                <ItemsControl ItemsSource="{Binding BlackBox}" Margin="0,12,0,0"
+                                                              Visibility="{Binding HasBlackBox, Converter={StaticResource BoolVis}}">
+                                                    <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Border BorderBrush="{DynamicResource Line}" BorderThickness="1" CornerRadius="6" Padding="10,5" Margin="0,0,8,8">
+                                                                <StackPanel>
+                                                                    <TextBlock Text="{Binding Key}" Foreground="{DynamicResource Muted}" FontSize="10"/>
+                                                                    <TextBlock Text="{Binding Value}" FontFamily="{StaticResource Mono}" FontSize="13" Margin="0,2,0,0"/>
+                                                                </StackPanel>
+                                                            </Border>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                                <StackPanel Margin="0,12,0,0" Visibility="{Binding HasBefore, Converter={StaticResource BoolVis}}">
+                                                    <TextBlock Text="NOS 10 MINUTOS ANTES" Foreground="{DynamicResource Faint}" FontSize="10" FontWeight="Bold" Margin="0,0,0,6"/>
+                                                    <ItemsControl ItemsSource="{Binding Before}">
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <Grid Margin="0,0,0,4">
+                                                                    <Grid.ColumnDefinitions><ColumnDefinition Width="14"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                                                    <TextBlock Text="›" Foreground="{DynamicResource Faint}"/>
+                                                                    <TextBlock Grid.Column="1" Text="{Binding}" Foreground="{DynamicResource Muted}" FontSize="11.5" TextWrapping="Wrap"/>
+                                                                </Grid>
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <Border Style="{StaticResource CardBorder}" Margin="0,0,0,14">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,6">
+                                    <TextBlock Text="TELAS AZUIS · ARQUIVOS DE DESPEJO" Style="{StaticResource Label}"/>
+                                    <Button Style="{StaticResource OutlineButton}" Content="ABRIR PASTA" Padding="10,4" FontSize="11"
+                                            HorizontalAlignment="Right" VerticalAlignment="Top" Click="BtnEvDumps_Click"/>
+                                </Grid>
+                                <TextBlock x:Name="EvDumps" TextWrapping="Wrap" FontFamily="{StaticResource Mono}" FontSize="12"/>
+                                <TextBlock Foreground="{DynamicResource Faint}" FontSize="11" TextWrapping="Wrap" Margin="0,8,0,0">
+                                    A cada tela azul o Windows salva um arquivo em C:\Windows\Minidump. Ele diz qual driver causou a falha:
+                                    abra com o WinDbg (Microsoft Store) ou o BlueScreenView e envie junto com o relatório quando pedir ajuda.
+                                </TextBlock>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource CardBorder}" Margin="0,0,0,14">
+                            <StackPanel>
+                                <TextBlock x:Name="EvSummary" Text="EVENTOS" Style="{StaticResource Label}" Margin="0,0,0,8"/>
+                                <WrapPanel x:Name="EvCats" Margin="0,0,0,6"/>
+                                <ItemsControl x:Name="EvList">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border BorderBrush="{DynamicResource Line}" BorderThickness="0,1,0,0" Padding="0,12">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="120"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <StackPanel>
+                                                        <TextBlock Text="{Binding TimeText}" FontFamily="{StaticResource Mono}" FontSize="12.5"/>
+                                                        <TextBlock Text="{Binding LevelText}" FontSize="9.5" FontWeight="Bold" Foreground="{DynamicResource Muted}" Margin="0,3,0,0"/>
+                                                    </StackPanel>
+                                                    <StackPanel Grid.Column="1">
+                                                        <Grid>
+                                                            <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="13.5" TextTrimming="CharacterEllipsis" Margin="0,0,130,0"/>
+                                                            <TextBlock Text="{Binding Category}" FontSize="9.5" FontWeight="Bold" Foreground="{DynamicResource Faint}"
+                                                                       HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,3,0,0"/>
+                                                        </Grid>
+                                                        <TextBlock Text="{Binding Explain}" Foreground="{DynamicResource Muted}" FontSize="12.5" TextWrapping="Wrap" LineHeight="17" Margin="0,3,0,0"/>
+                                                        <TextBlock Text="{Binding Message}" Foreground="{DynamicResource Muted}" FontSize="11" FontFamily="{StaticResource Mono}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                                                        <TextBlock Text="{Binding Source}" Foreground="{DynamicResource Faint}" FontSize="10.5" Margin="0,3,0,0"/>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <TextBlock x:Name="EvListMore" Foreground="{DynamicResource Faint}" FontSize="11" TextWrapping="Wrap" Margin="0,8,0,0"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource CardBorder}" Margin="0,0,0,14">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,8">
+                                    <TextBlock Text="CAIXA-PRETA" Style="{StaticResource Label}"/>
+                                    <Button Style="{StaticResource OutlineButton}" Content="ABRIR PASTA" Padding="10,4" FontSize="11"
+                                            HorizontalAlignment="Right" VerticalAlignment="Top" Click="BtnEvBlackBoxFolder_Click"/>
+                                </Grid>
+                                <CheckBox x:Name="ChkBlackBox" Content="Gravar temperatura, carga e consumo de CPU e GPU a cada 5 s enquanto o app estiver aberto"
+                                          Click="ChkBlackBox_Click"/>
+                                <TextBlock Foreground="{DynamicResource Faint}" FontSize="11" TextWrapping="Wrap" Margin="0,8,0,0">
+                                    Se o PC desligar ou reiniciar sozinho, os últimos valores antes da queda aparecem no desligamento acima.
+                                    Temperatura muito alta aponta superaquecimento; valores normais com desligamento seco apontam fonte ou energia.
+                                    Pode deixar o app minimizado. Arquivos dos últimos 7 dias em %AppData%\ResetExplode\caixa-preta.
+                                </TextBlock>
+                                <TextBlock x:Name="EvBlackBoxInfo" TextWrapping="Wrap" Margin="0,8,0,0"/>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
                 </ScrollViewer>
 
