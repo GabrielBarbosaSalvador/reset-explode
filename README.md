@@ -102,6 +102,14 @@ App WPF (.NET 8) com:
 - **Rede** (`NetworkTest.cs`): diagnóstico de lag em ~30 s — latência, jitter e perda de pacotes até o roteador e até a internet (1.1.1.1 e 8.8.8.8),
   tempo de DNS, velocidade de download/upload (servidor público speed.cloudflare.com) e latência sob carga (bufferbloat). O veredito aponta se o
   problema está na rede local (Wi-Fi/cabo/roteador), no provedor ou se a conexão está estável.
+- **Eventos e falhas** (`EventDiagnostics.cs`, `BlackBox.cs`, `MainWindow.Events.cs`): descobre por que o PC reiniciou, desligou ou travou
+  lendo o Visualizador de Eventos (System e Application, 24 h / 7 / 30 dias). Cada início do Windows vira um item da linha do tempo:
+  desligado normalmente, reinício pedido (e por quem), **tela azul** com o código traduzido (0x124, 0x133, 0x116...), **erro fatal de hardware**
+  (WHEA 18 que a BIOS entrega ao religar), **travou e foi desligado no botão** ou **desligou sozinho** (Kernel-Power 41 sem tela azul: fonte,
+  energia ou proteção térmica), com os erros dos 10 minutos antes. Agrupa os eventos (WHEA, vídeo/TDR, disco, memória, programas, serviços)
+  com explicação em português, lista os arquivos de despejo e dá um **veredito** com a causa provável e o que fazer. **Caixa-preta**: enquanto o
+  app está aberto grava temperatura, carga e consumo de CPU e GPU a cada 5 s (direto no disco) e mostra os valores antes de cada queda.
+  **COPIAR RELATÓRIO** gera um texto para colar em fórum/suporte; o resumo também entra no relatório exportado e na saúde da Visão geral.
 - **RESET INTEGRAÇÃO** (`LightBackends.cs`, `CorsairSdk.cs`, `CorsairSdkInstaller.cs`, `MainWindow.Integ.cs`): controle de iluminação e efeitos
   de todo o PC numa tela só (em teste). Pontes: **Corsair iCUE / iCUE LINK** (iCUE SDK v4; a DLL é baixada pelo programa, com confirmação e
   verificação de assinatura), **OpenRGB** (servidor SDK local; é o caminho para **MSI Mystic Light, Gigabyte RGB Fusion, ASUS Aura**, RAM, Razer,
@@ -120,7 +128,7 @@ App WPF (.NET 8) com:
   com *Visão geral* no topo e categorias **RESET** recolhíveis (começam fechadas; clique para ver as sub-abas):
   - *Visão geral* (`MainWindow.Dash.cs`): gráfico de área CPU × GPU (temperatura, carga ou consumo; 1/5/15 min),
     desempenho do RESET BENCH, tabela de componentes, anéis de RAM/VRAM/disco, eventos recentes e saúde do PC.
-  - **RESET EXPLODE** · Sistema, Sensores, Placa de vídeo, Discos, Energia, Rede.
+  - **RESET EXPLODE** · Sistema, Sensores, Placa de vídeo, Discos, Energia, Rede, Eventos e falhas.
   - **RESET JOGOS** · Biblioteca, FPS estimado, Gargalo, Overlay.
   - **RESET DESEMPENHO** · Benchmark, Stress test, Overclock.
   - **RESET FERRAMENTAS** · Otimização, Inicialização, Instalar apps, Drivers, Integração.

@@ -22,6 +22,7 @@ public sealed class ReportData
     public List<ReportDisk> Disks { get; init; } = new();
     public List<ReportDisk> Power { get; init; } = new();
     public List<ReportDisk> Network { get; init; } = new();
+    public List<ReportDisk> Events { get; init; } = new();
     public List<ReportSensor> Sensors { get; init; } = new();
     public List<ReportBench> Benchmarks { get; init; } = new();
 }
@@ -52,6 +53,7 @@ public static class ReportBuilder
         }),
         energia = d.Power.Select(x => new { x.Name, x.Details, estado = x.Verdict, x.Reasons, metricas = x.Metrics.ToDictionary(m => m.Key, m => m.Value) }),
         rede = d.Network.Select(x => new { x.Name, x.Details, estado = x.Verdict, x.Reasons, metricas = x.Metrics.ToDictionary(m => m.Key, m => m.Value) }),
+        eventos_e_falhas = d.Events.Select(x => new { x.Name, x.Details, estado = x.Verdict, x.Reasons, metricas = x.Metrics.ToDictionary(m => m.Key, m => m.Value) }),
         sensores = d.Sensors,
         benchmarks = d.Benchmarks,
     }, new JsonSerializerOptions { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
@@ -62,7 +64,7 @@ public static class ReportBuilder
         sb.Append($"<section><h2>{E(title)}</h2>");
         foreach (var disk in items)
         {
-            string cls = disk.Verdict switch { "SAUDÁVEL" or "ESTÁVEL" or "EM USO" => "ok", "SEM DADOS" => "na", _ => "bad" };
+            string cls = disk.Verdict switch { "SAUDÁVEL" or "ESTÁVEL" or "EM USO" or "TUDO CERTO" => "ok", "SEM DADOS" => "na", _ => "bad" };
             sb.Append($"<div class=\"card\"><div class=\"row\"><b>{E(disk.Name)}</b><span class=\"badge {cls}\">{E(disk.Verdict)}</span></div>");
             if (disk.Details.Length > 0) sb.Append($"<p class=\"muted\">{E(disk.Details)}</p>");
             sb.Append($"<p>{E(disk.Reasons)}</p>");
@@ -93,6 +95,7 @@ public static class ReportBuilder
         sb.Append("<p class=\"note\">Números de série foram omitidos deste relatório.</p>");
 
         // Resumo dos discos no topo (o que mais interessa de imediato)
+        Section(sb, "Eventos e falhas (últimos 7 dias)", d.Events);
         Section(sb, "Saúde dos discos", d.Disks);
         Section(sb, "Bateria e energia", d.Power);
         Section(sb, "Teste de rede", d.Network);

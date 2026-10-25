@@ -70,6 +70,9 @@ public sealed class AppSettings
     // Aparência
     public bool LightTheme { get; set; }
 
+    /// <summary>Eventos e falhas: caixa-preta gravando sensores enquanto o app está aberto.</summary>
+    public bool BlackBoxEnabled { get; set; } = true;
+
     // Overlay
     public string OverlayCorner { get; set; } = "TL";
     public double OverlayScale { get; set; } = 1.0;
