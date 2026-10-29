@@ -70,6 +70,9 @@ public sealed class AppSettings
     // Aparência
     public bool LightTheme { get; set; }
 
+    /// <summary>Fechar ou minimizar deixa o app rodando na bandeja em vez de encerrar.</summary>
+    public bool KeepInTray { get; set; }
+
     /// <summary>Eventos e falhas: caixa-preta gravando sensores enquanto o app está aberto.</summary>
     public bool BlackBoxEnabled { get; set; } = true;
 

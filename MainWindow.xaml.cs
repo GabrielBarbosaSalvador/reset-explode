@@ -103,7 +103,9 @@ public partial class MainWindow : Window
         UpdateDashboard();
 
         // A janela aparece já; as coletas pesadas (WMI, sensores, GPU) rodam em paralelo fora da thread da janela.
-        Loaded += async (_, _) => await LoadHardwareAsync();
+        // Aberto escondido na bandeja (--tray) a janela não carrega até ser mostrada: StartHidden faz a mesma coleta.
+        Loaded += async (_, _) => await LoadHardwareOnceAsync();
+        InitTray();
 
         _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
         _timer.Tick += (_, _) =>
@@ -130,9 +132,13 @@ public partial class MainWindow : Window
             bool max = WindowState == WindowState.Maximized;
             Root.BorderThickness = max ? new Thickness(0) : new Thickness(1);
             BtnMax.Content = max ? "" : "";
+            if (WindowState != WindowState.Minimized) _restoreState = WindowState;
+            else if (_settings.KeepInTray) HideToTray();
         };
+        Closing += (_, e) => { if (InterceptClose()) e.Cancel = true; };
         Closed += (_, _) =>
         {
+            DisposeTray();
             _timer.Stop(); _overlayTimer?.Stop();
             _stress.Stop(); _burn.Stop(); _benchCts?.Cancel();
             _overlay?.Close();
