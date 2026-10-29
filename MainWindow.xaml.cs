@@ -126,9 +126,9 @@ public partial class MainWindow : Window
 
         StateChanged += (_, _) =>
         {
-            // Sem borda nativa, a janela maximizada vaza ~7 px para fora da tela.
+            // O tamanho maximizado já vem ajustado à área de trabalho do monitor (WM_GETMINMAXINFO), sem vazar da tela.
             bool max = WindowState == WindowState.Maximized;
-            Root.Margin = max ? new Thickness(7) : new Thickness(0);
+            Root.BorderThickness = max ? new Thickness(0) : new Thickness(1);
             BtnMax.Content = max ? "" : "";
         };
         Closed += (_, _) =>
@@ -1302,8 +1302,56 @@ public partial class MainWindow : Window
         }
         else if (msg == 0x0219) // WM_DEVICECHANGE
             OnDeviceChange(wParam.ToInt32(), lParam);
+        else if (msg == 0x0024) // WM_GETMINMAXINFO
+            handled = FitToWorkArea(hwnd, lParam);
         return IntPtr.Zero;
     }
+
+    private double _designMinWidth = double.NaN, _designMinHeight = double.NaN;
+
+    /// <summary>
+    /// Sem borda nativa (WindowStyle=None), o Windows maximiza a janela do tamanho do monitor inteiro mais a borda
+    /// invisível — cobre a barra de tarefas e empurra o topo (header) para fora da tela, tanto mais quanto maior a escala.
+    /// Aqui o maximizado passa a ocupar exatamente a área de trabalho do monitor atual, e o tamanho mínimo encolhe
+    /// quando a tela (em DIPs) é menor que ele (ex.: notebook 1080p a 150%/175%).
+    /// </summary>
+    private bool FitToWorkArea(IntPtr hwnd, IntPtr lParam)
+    {
+        var monitor = MonitorFromWindow(hwnd, 2 /* MONITOR_DEFAULTTONEAREST */);
+        var info = new MONITORINFO { cbSize = System.Runtime.InteropServices.Marshal.SizeOf<MONITORINFO>() };
+        if (monitor == IntPtr.Zero || !GetMonitorInfo(monitor, ref info)) return false;
+
+        RECT work = info.rcWork, mon = info.rcMonitor;
+        int workW = work.Right - work.Left, workH = work.Bottom - work.Top;
+
+        var toDevice = PresentationSource.FromVisual(this)?.CompositionTarget?.TransformToDevice ?? System.Windows.Media.Matrix.Identity;
+        if (double.IsNaN(_designMinWidth)) { _designMinWidth = MinWidth; _designMinHeight = MinHeight; }
+        double minW = Math.Min(_designMinWidth, workW / toDevice.M11);
+        double minH = Math.Min(_designMinHeight, workH / toDevice.M22);
+        if (MinWidth != minW) MinWidth = minW;
+        if (MinHeight != minH) MinHeight = minH;
+
+        var mmi = System.Runtime.InteropServices.Marshal.PtrToStructure<MINMAXINFO>(lParam);
+        mmi.ptMaxPosition = new POINT { X = work.Left - mon.Left, Y = work.Top - mon.Top };
+        mmi.ptMaxSize = new POINT { X = workW, Y = workH };
+        mmi.ptMinTrackSize = new POINT { X = (int)Math.Ceiling(minW * toDevice.M11), Y = (int)Math.Ceiling(minH * toDevice.M22) };
+        System.Runtime.InteropServices.Marshal.StructureToPtr(mmi, lParam, false);
+        return true;
+    }
+
+    [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
+    private struct POINT { public int X, Y; }
+    [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
+    private struct RECT { public int Left, Top, Right, Bottom; }
+    [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
+    private struct MINMAXINFO { public POINT ptReserved, ptMaxSize, ptMaxPosition, ptMinTrackSize, ptMaxTrackSize; }
+    [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
+    private struct MONITORINFO { public int cbSize; public RECT rcMonitor, rcWork; public uint dwFlags; }
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern IntPtr MonitorFromWindow(IntPtr hwnd, uint flags);
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool GetMonitorInfo(IntPtr monitor, ref MONITORINFO info);
 
     private void ChkOverlay_Changed(object sender, RoutedEventArgs e)
     {
