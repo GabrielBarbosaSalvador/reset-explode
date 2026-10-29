@@ -2455,6 +2455,22 @@
                                     HorizontalAlignment="Right" VerticalAlignment="Top" Click="BtnStartupScan_Click"/>
                         </Grid>
 
+                        <Border Style="{StaticResource CardBorder}" Margin="0,0,0,14">
+                            <StackPanel>
+                                <TextBlock Text="RESET EXPLODE EM SEGUNDO PLANO" Style="{StaticResource Label}" Margin="0,0,0,8"/>
+                                <CheckBox x:Name="ChkAutoStart" Content="Iniciar com o Windows (abre escondido, só o ícone perto do relógio)"
+                                          Click="ChkAutoStart_Click"/>
+                                <CheckBox x:Name="ChkTray" Content="Ao fechar ou minimizar, continuar rodando na bandeja (some da barra de tarefas)"
+                                          Click="ChkTray_Click" Margin="0,8,0,0"/>
+                                <TextBlock Foreground="{DynamicResource Faint}" FontSize="11" TextWrapping="Wrap" Margin="0,8,0,0">
+                                    O ícone fica na setinha ao lado do relógio: clique nele para abrir a janela de novo; botão direito &gt; Sair
+                                    encerra de vez. Na bandeja a caixa-preta, o overlay e o atalho Ctrl + Shift + O continuam funcionando.
+                                    A inicialização usa uma tarefa agendada, então o app abre como administrador sem o aviso do UAC.
+                                </TextBlock>
+                                <TextBlock x:Name="AutoStartResult" TextWrapping="Wrap" Margin="0,8,0,0"/>
+                            </StackPanel>
+                        </Border>
+
                         <Border Style="{StaticResource CardBorder}">
                             <StackPanel>
                                 <Grid Margin="0,0,0,6">

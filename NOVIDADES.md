@@ -14,6 +14,8 @@
   e pastas Inicializar, com descrição, fabricante e aviso quando o arquivo do programa não existe mais.
 - Interruptor para ativar/desativar, igual ao Gerenciador de Tarefas: a entrada continua lá e pode ser religada.
 - Botão **REMOVER** com confirmação; o programa continua instalado e tudo pode ser desfeito em **Restaurar removidos**.
+- **RESET EXPLODE em segundo plano**: opção de iniciar com o Windows (abre escondido, só o ícone perto do relógio, sem aviso
+  do UAC) e de continuar rodando na bandeja ao fechar ou minimizar. Clique no ícone para abrir; botão direito › Sair encerra.
 
 **Nova página · RESET FERRAMENTAS › Instalar apps**
 - Os essenciais depois de formatar o PC: Steam, Google Chrome, Discord, Lightshot, 7-Zip, WinRAR e VLC.
