@@ -16,5 +16,9 @@ ResetExplode-dist/
 # Local
 *.log
 
+# Assinatura: a chave privada nunca vai para o git
+*.pfx
+*.p12
+
 # Drivers seriais embutidos (RESET MAKER): as DLLs fazem parte dos pacotes assinados
 !Drivers/**
