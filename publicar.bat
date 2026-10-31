@@ -42,6 +42,22 @@ if errorlevel 1 (
     exit /b 1
 )
 copy /y "LEIA-ME.txt" "..\ResetExplode-dist\LEIA-ME.txt" >nul
+
+echo Assinando ResetExplode.exe ...
+powershell -NoProfile -ExecutionPolicy Bypass -File "assinatura\assinar.ps1" -Arquivo "%EXE%"
+if errorlevel 2 goto sem_assinatura
+if errorlevel 1 (
+    echo.
+    echo FALHOU a assinatura. O .exe foi gerado, mas esta SEM assinatura.
+    pause
+    exit /b 1
+)
+rem Vai junto para os outros PCs confiarem no certificado proprio
+if exist "assinatura\ResetExplode.cer" (
+    copy /y "assinatura\ResetExplode.cer" "..\ResetExplode-dist\ResetExplode.cer" >nul
+    copy /y "assinatura\instalar-certificado.bat" "..\ResetExplode-dist\instalar-certificado.bat" >nul
+)
+:sem_assinatura
 echo.
 echo Pronto: %~dp0..\ResetExplode-dist
 for %%F in ("%EXE%") do echo Arquivo gerado em %%~tF (confira se e de agora^)
